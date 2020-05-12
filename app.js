@@ -29,31 +29,43 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser('secter-key-012345-78790-46997'));
 
 const auth = (req, res, next) => {
-  console.log('req headers', req.headers);
-  const authHeader = req.headers.authorization;
+  console.log('signedCookies', req.signedCookies);
 
-  if (authHeader == null) {
-    const err = new Error('You are not authenticated!');
-    res.setHeader('WWW-Authenticate', 'Basic');
-    err.status = 401;
-    next(err);
-
-    return;
+  if (req.signedCookies.user === 'admin') {
+    return next(); // authorized
   }
 
-  const auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+  if (req.signedCookies.user == null) {
+    const authHeader = req.headers.authorization;
 
-  const user = auth[0];
-  const pass = auth[1];
+    if (authHeader == null) {
+      const err = new Error('You are not authenticated!');
+      res.setHeader('WWW-Authenticate', 'Basic');
+      err.status = 401;
+      next(err);
 
-  if (user === 'admin' && pass === 'password') {
-    next();
+      return;
+    }
+
+    const auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+
+    const user = auth[0];
+    const pass = auth[1];
+
+    if (user === 'admin' && pass === 'password') {
+      res.cookie('user', 'admin', { signed: true })
+      next();
+    } else {
+      const err = new Error('You are not authenticated!');
+      res.setHeader('WWW-Authenticate', 'Basic');
+      err.status = 401;
+      next(err);
+    }
   } else {
     const err = new Error('You are not authenticated!');
-    res.setHeader('WWW-Authenticate', 'Basic');
     err.status = 401;
     next(err);
   }
@@ -70,12 +82,12 @@ app.use('/leaders', leaderRouter);
 app.use('/promotions', promoRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
