@@ -1,7 +1,6 @@
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const mongoose = require('mongoose');
 const session = require('express-session');
@@ -40,52 +39,26 @@ app.use(session({
 
 }));
 
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+
 const auth = (req, res, next) => {
   console.log('session', req.session);
 
-  if (req.session.user === 'admin') {
-    return next(); // authorized
-  }
-
-  if (req.session.user == null) {
-    const authHeader = req.headers.authorization;
-
-    if (authHeader == null) {
-      const err = new Error('You are not authenticated!');
-      res.setHeader('WWW-Authenticate', 'Basic');
-      err.status = 401;
-      next(err);
-
-      return;
-    }
-
-    const auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
-
-    const user = auth[0];
-    const pass = auth[1];
-
-    if (user === 'admin' && pass === 'password') {
-      req.session.user = 'admin';
-      next();
-    } else {
-      const err = new Error('You are not authenticated!');
-      res.setHeader('WWW-Authenticate', 'Basic');
-      err.status = 401;
-      next(err);
-    }
-  } else {
+  if (req.session.user == null || req.session.user !== 'authenticated') {
     const err = new Error('You are not authenticated!');
+    res.setHeader('WWW-Authenticate', 'Basic');
     err.status = 401;
-    next(err);
+    return next(err);
   }
+
+  next(); // authorized
 };
 
 app.use(auth);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/dishes', dishRouter);
 app.use('/leaders', leaderRouter);
 app.use('/promotions', promoRouter);
