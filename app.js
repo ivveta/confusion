@@ -5,13 +5,15 @@ var logger = require('morgan');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
+const passport = require('passport');
+
+const authenticate = require('./autenticate');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-
-var dishRouter = require('./routes/dishRouter');
-var leaderRouter = require('./routes/leaderRouter');
-var promoRouter = require('./routes/promoRouter');
+var dishRouter = require('./routes/dish');
+var leaderRouter = require('./routes/leader');
+var promoRouter = require('./routes/promo');
 
 const url = 'mongodb://localhost:27017/conFusion';
 const connect = mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -36,23 +38,23 @@ app.use(session({
   saveUninitialized: false,
   resave: false,
   store: new FileStore(),
-
 }));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 const auth = (req, res, next) => {
-  console.log('session', req.session);
-
-  if (req.session.user == null || req.session.user !== 'authenticated') {
+  if (req.user == null) {
     const err = new Error('You are not authenticated!');
     res.setHeader('WWW-Authenticate', 'Basic');
     err.status = 401;
     return next(err);
   }
 
-  next(); // authorized
+  next();
 };
 
 app.use(auth);
