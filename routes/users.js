@@ -26,11 +26,35 @@ router.post('/signup', (req, res, next) => {
       return;
     }
 
-    passport.authenticate('local')(req, res, () => {
-      res.status = 200;
-      res.setHeader('Content-Type', 'application/json');
-      res.json({ success: true, status: 'Registration Successful!' });
-    });
+    if (req.body.firstname != null) {
+      user.firstname = req.body.firstname;
+    }
+    if (req.body.lastname != null) {
+      user.lastname = req.body.lastname;
+    }
+
+    user.save().then(user => {
+      passport.authenticate('local')(req, res, () => {
+        res.status = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json({ success: true, status: 'Registration Successful!' });
+      });
+    }, err => next(err));
+
+    // user.save((err, user) => {
+    //   if (err != null) {
+    //     res.status = 500;
+    //     res.setHeader('Content-Type', 'application/json');
+    //     res.json({ err });
+    //     return;
+    //   }
+
+    //   passport.authenticate('local')(req, res, () => {
+    //     res.status = 200;
+    //     res.setHeader('Content-Type', 'application/json');
+    //     res.json({ success: true, status: 'Registration Successful!' });
+    //   });
+    // });
   });
 });
 
