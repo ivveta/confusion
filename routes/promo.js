@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const autenticate = require('../authenticate');
+const authenticate = require('../authenticate');
 const Promotions = require('../models/promotions');
 
 const promoRouter = express.Router();
@@ -18,7 +18,7 @@ promoRouter.route('/')
             }, err => next(err))
             .catch(err => next(err));
     })
-    .post(autenticate.verifyUser, (req, res, next) => {
+    .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Promotions.create(req.body)
             .then(promotion => {
                 res.statusCode = 200;
@@ -27,11 +27,11 @@ promoRouter.route('/')
             }, err => next(err))
             .catch(err => next(err));
     })
-    .put(autenticate.verifyUser, (req, res, next) => {
+    .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         res.statusCode = 403;
         res.end('Put operations is not supported on /promotions');
     })
-    .delete(autenticate.verifyUser, (req, res, next) => {
+    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Promotions.remove({})
             .then(resp => {
                 res.statusCode = 200;
@@ -51,11 +51,11 @@ promoRouter.route('/:promoId')
             }, err => next(err))
             .catch(err => next(err));
     })
-    .post(autenticate.verifyUser, (req, res, next) => {
+    .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         res.statusCode = 403;
         res.end(`Post operations is not supported on /promotions/${req.params.promoId}`);
     })
-    .put(autenticate.verifyUser, (req, res, next) => {
+    .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Promotions.findByIdAndUpdate(req.params.promoId, { $set: req.body }, {new: true })
             .then(promotion => {
                 res.statusCode = 200;
@@ -64,7 +64,7 @@ promoRouter.route('/:promoId')
             }, err => next(err))
             .catch(err => next(err));
     })
-    .delete(autenticate.verifyUser, (req, res, next) => {
+    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Promotions.findByIdAndRemove(req.params.promoId)
             .then(resp => {
                 res.statusCode = 200;
