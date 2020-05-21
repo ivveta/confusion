@@ -9,11 +9,11 @@ router.use(bodyParser.json());
 
 router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
   User.find({})
-  .then(users => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    res.json(users);
-  }, err => next(err));
+    .then(users => {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.json(users);
+    }, err => next(err));
 });
 
 router.post('/signup', (req, res, next) => {
@@ -44,8 +44,8 @@ router.post('/signup', (req, res, next) => {
 
 router.post('/login', passport.authenticate('local'), (req, res) => {
   console.log(req.user);
-  
-  const token = authenticate.getToken({_id: req.user._id});
+
+  const token = authenticate.getToken({ _id: req.user._id });
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
   res.json({ success: true, token, status: 'You are successfully logged in!' });
@@ -53,7 +53,7 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
 });
 
 router.get('/logout', (req, res, next) => {
-  if(req.session == null){
+  if (req.session == null) {
     const err = new Error('You are not logged in');
     err.status = 403;
     return next(err);

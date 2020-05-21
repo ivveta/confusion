@@ -19,9 +19,18 @@ const connect = mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopolog
 connect
   .then(
     () => console.log('Connected correctly to server'),
-    err => console.log(err))
+    err => console.log(err));
 
-var app = express();
+const app = express();
+
+app.all('*', (req, res, next) => {
+  console.log('req.secure',req.secure);
+  if (req.secure) {
+    return next();
+  }
+
+  res.redirect(307, `https://${req.hostname}:${app.get('secPort')}${req.url}`);
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
