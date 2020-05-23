@@ -7,11 +7,12 @@ const passport = require('passport');
 
 const config = require('./config');
 
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
 const dishRouter = require('./routes/dish');
+const indexRouter = require('./routes/index');
 const leaderRouter = require('./routes/leader');
 const promoRouter = require('./routes/promo');
+const uploadRouter = require('./routes/upload');
+const usersRouter = require('./routes/users');
 
 const url = config.mongoUrl;
 const connect = mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -24,7 +25,6 @@ connect
 const app = express();
 
 app.all('*', (req, res, next) => {
-  console.log('req.secure',req.secure);
   if (req.secure) {
     return next();
   }
@@ -50,6 +50,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/dishes', dishRouter);
 app.use('/leaders', leaderRouter);
 app.use('/promotions', promoRouter);
+app.use('/imageUpload', uploadRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
