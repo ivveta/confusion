@@ -74,7 +74,7 @@ favoriteRouter.route('/')
       .catch(err => next(err));
   });
 
-favoriteRouter.route('/favorites/:dishId')
+favoriteRouter.route('/:dishId')
   .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
   .get(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
@@ -86,7 +86,7 @@ favoriteRouter.route('/favorites/:dishId')
         if (favorites == null) {
           // создаем новый
           Favorites
-            .create({ user: req.user._id, dishes: [req.body] })
+            .create({ user: req.user._id, dishes: [req.params.dishId] })
             .then(favorites => {
               res.statusCode = 200;
               res.setHeader('Content-Type', 'application/json');
@@ -96,8 +96,8 @@ favoriteRouter.route('/favorites/:dishId')
           return;
         }
 
-        if (!favorites.dishes.includes(req.body)) {
-          favorites.dishes.push(req.body);
+        if (!favorites.dishes.includes(req.params.dishId)) {
+          favorites.dishes.push(req.params.dishId);
 
           favorites.save()
             .then(favorites => {
@@ -110,7 +110,7 @@ favoriteRouter.route('/favorites/:dishId')
         }
 
         res.statusCode = 403;
-        res.end(`Dish with id ${req.body} is already in favorites`);
+        res.end(`Dish with id ${req.params.dishId} is already in favorites`);
       }, err => next(err))
       .catch(err => next(err));
   })
@@ -127,10 +127,10 @@ favoriteRouter.route('/favorites/:dishId')
           return next(err);
         }
 
-        const dishIndex = favorites.dishes.findIndex(req.params.dishId);
+        const dishIndex = favorites.dishes.findIndex((x)=> x.equals(req.params.dishId));
 
         if (dishIndex === -1) {
-          const err = new Error(`Dish ${req.params.dishId} is not on the favorites`);
+          const err = new Error(`Dish ${req.params.dishId} is not in the favorites`);
           err.status = 404;
           return next(err);
         }
