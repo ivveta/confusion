@@ -121,7 +121,7 @@ favoriteRouter.route('/:dishId')
       .then(favorites => {
         if (favorites == null) {
           const err = new Error(`Favorites are empty`);
-          err.status = 404;
+          err.status = 200;
           return next(err);
         }
 
