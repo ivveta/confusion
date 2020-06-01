@@ -25,26 +25,18 @@ favoriteRouter.route('/')
   .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Favorites.findOne({ user: req.user._id })
       .then(favorites => {
-        const saveFavorites = (favorites) => {
-          favorites.save()
+        if (favorites == null) {
+          // create new
+          const dishes = req.body.map(dish => dish._id);
+          Favorites
+            .create({
+              user: req.user._id,
+              dishes: dishes,
+            })
             .then(favorites => {
               res.statusCode = 200;
               res.setHeader('Content-Type', 'application/json');
               res.json(favorites);
-            }, err => next(err));
-        };
-
-        if (favorites == null) {
-          // создаем новый
-          Favorites
-            .create({ user: req.user._id, dishes: [] })
-            .then(favorites => {
-              req.body.forEach(dish => {
-                favorites.dishes.push(dish._id);
-              });
-
-              saveFavorites(favorites);
-
             }, err => next(err));
 
           return;
@@ -56,7 +48,13 @@ favoriteRouter.route('/')
           }
         });
 
-        saveFavorites(favorites);
+        favorites.save()
+          .then(favorites => {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json(favorites);
+          }, err => next(err));
+
       }, err => next(err))
       .catch(err => next(err));
   })
@@ -84,7 +82,7 @@ favoriteRouter.route('/:dishId')
     Favorites.findOne({ user: req.user._id })
       .then(favorites => {
         if (favorites == null) {
-          // создаем новый
+          // create new
           Favorites
             .create({ user: req.user._id, dishes: [req.params.dishId] })
             .then(favorites => {
@@ -109,8 +107,8 @@ favoriteRouter.route('/:dishId')
           return;
         }
 
-        res.statusCode = 403;
-        res.end(`Dish with id ${req.params.dishId} is already in favorites`);
+        res.statusCode = 200;
+        res.end(`Dish with id ${req.params.dishId} already has presented in favorites`);
       }, err => next(err))
       .catch(err => next(err));
   })
