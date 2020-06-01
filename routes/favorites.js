@@ -63,7 +63,7 @@ favoriteRouter.route('/')
     res.end(`Put operations is not supported on /favorites`);
   })
   .delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-    Favorites.findOneAndRemove({ user: req.user._id })
+    Favorites.deleteOne({ user: req.user._id })
       .then(resp => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -129,7 +129,7 @@ favoriteRouter.route('/:dishId')
 
         if (dishIndex === -1) {
           const err = new Error(`Dish ${req.params.dishId} is not in the favorites`);
-          err.status = 404;
+          err.status = 200;
           return next(err);
         }
 
